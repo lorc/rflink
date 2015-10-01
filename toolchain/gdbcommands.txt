@@ -1,0 +1,21 @@
+target remote localhost:4242
+load
+monitor halt
+monitor reset
+#monitor speed 8000 #not supported
+#monitor flash device STM32F100VC #not supported
+
+tbreak main
+continue
+
+define reset
+  monitor halt
+  monitor reset
+  x/1wx 0x08000000
+  set var $SP = $__
+  x/1
+  set var $PC = $__
+  tbreak main
+  continue
+end
+
