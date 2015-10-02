@@ -21,6 +21,7 @@ include(${TOOLCHAIN_DIR}/toolchain.cmake)
 # Library cmake includes
 include(${LIBRARIES_DIR}/HAL/HAL.cmake)
 include(${LIBRARIES_DIR}/CMSIS/CMSIS.cmake)
+include(${LIBRARIES_DIR}/USBCore/USBCore.cmake)
 
 # Programmer
 include(${TOOLCHAIN_DIR}/stlink.cmake)
@@ -39,5 +40,6 @@ target_link_libraries (
     ${CMAKE_PROJECT_NAME}.elf
     CMSIS
     HAL
+    USBCore
 )
 
