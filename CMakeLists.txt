@@ -22,6 +22,7 @@ include(${TOOLCHAIN_DIR}/toolchain.cmake)
 include(${LIBRARIES_DIR}/HAL/HAL.cmake)
 include(${LIBRARIES_DIR}/CMSIS/CMSIS.cmake)
 include(${LIBRARIES_DIR}/USBCore/USBCore.cmake)
+include(${LIBRARIES_DIR}/USBDevice/USBDevice.cmake)
 
 # Programmer
 include(${TOOLCHAIN_DIR}/stlink.cmake)
@@ -34,6 +35,9 @@ add_definitions("-DSTM32F103xB")
 add_executable (
     ${CMAKE_PROJECT_NAME}.elf
     main.c
+    syscalls.c
+    usbd_conf.c
+    usbd_desc.c
 )
 
 target_link_libraries (
@@ -41,5 +45,6 @@ target_link_libraries (
     CMSIS
     HAL
     USBCore
+    USBDevice
 )
 

@@ -1,4 +1,9 @@
 #include <stm32f1xx_hal.h>
+#include <usbd.h>
+
+extern USBD_DescriptorsTypeDef RfLink_Desc;
+extern PCD_HandleTypeDef hpcd;
+USBD_HandleTypeDef USBD_Device;
 
 void SystemClock_Config();
 void ConfigureLed();
@@ -7,16 +12,27 @@ int main(void)
 {
 	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
 	HAL_Init();
-
 	/* Configure the system clock to 72 Mhz */
 	SystemClock_Config();
+	/* Make SysTick most wanted IRQ */
+	HAL_NVIC_SetPriority(SysTick_IRQn, 0x0, 0x0);
+	/* Init Device Library */
+	USBD_Init(&USBD_Device, &RfLink_Desc, 0);
+  
+	/* Register the HID class */
+	USBD_RegisterClass(&USBD_Device, &USBD_RfLink_ClassDriver);
+  
+	/* Start Device Process */
+	USBD_Start(&USBD_Device);
 
+	
 	/* Toggle LED every second*/
 	ConfigureLed();
 	while(1)
 	{
 		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 		HAL_Delay(1000);
+		printf("Ping-Pong\n");
 	}
 };
 
@@ -34,6 +50,7 @@ void SystemClock_Config()
 {
 	RCC_ClkInitTypeDef clkinitstruct = {0};
 	RCC_OscInitTypeDef oscinitstruct = {0};
+	RCC_PeriphCLKInitTypeDef rccperiphclkinit = {0};
 
 	/* Configure PLL ------------------------------------------------------*/
 	/* PLL configuration: PLLCLK = (HSI / 2) * PLLMUL = (8 / 2) * 16 = 64 MHz */
@@ -51,7 +68,11 @@ void SystemClock_Config()
 	{
 		/* Initialization Error */
 		while(1);
-	}
+	}  /* USB clock selection */
+
+	rccperiphclkinit.PeriphClockSelection = RCC_PERIPHCLK_USB;
+	rccperiphclkinit.UsbClockSelection = RCC_USBPLLCLK_DIV1_5;
+	HAL_RCCEx_PeriphCLKConfig(&rccperiphclkinit);
 
 	/* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
 	   clocks dividers */
@@ -70,4 +91,24 @@ void SystemClock_Config()
 void SysTick_Handler()
 {
 	HAL_IncTick();
+}
+
+/**
+  * @brief  This function handles USB Handler.
+  * @param  None
+  * @retval None
+  */
+void USB_LP_CAN1_RX0_IRQHandler(void)
+{
+	HAL_PCD_IRQHandler(&hpcd);
+}
+
+/**
+  * @brief  This function handles USB WakeUp interrupt request.
+  * @param  None
+  * @retval None
+  */
+void USBWakeUp_IRQHandler(void)
+{
+	__HAL_USB_WAKEUP_EXTI_CLEAR_FLAG();
 }
